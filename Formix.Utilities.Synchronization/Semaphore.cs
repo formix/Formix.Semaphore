@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Formix.Utilities.Synchronization
 {
     public class Semaphore : AbstractSemaphore
     {
+        #region static members
         private static readonly IDictionary<string, Semaphore> _semaphores;
-
-        private LinkedList<SemaphoreTask> _semaphoreEntries;
 
         static Semaphore()
         {
             _semaphores = new Dictionary<string, Semaphore>();
         }
+        #endregion
+
+
+        private LinkedList<SemaphoreTask> _semaphoreEntries;
+
 
         private Semaphore(string name, int quantity)
         {
@@ -60,35 +62,38 @@ namespace Formix.Utilities.Synchronization
 
         protected override async Task Dequeue(SemaphoreTask entry)
         {
-            lock (_semaphoreEntries)
+            await Task.Run(() =>
             {
-                _semaphoreEntries.Remove(entry);
-            }
-            await Task.CompletedTask;
+                lock (_semaphoreEntries)
+                {
+                    _semaphoreEntries.Remove(entry);
+                }
+            });
         }
 
         protected override async Task<bool> CanExecute(SemaphoreTask entry)
         {
-            var canExecute = false;
-            lock (_semaphoreEntries)
+            return await Task.Run(() =>
             {
-                int remains = Quantity;
-
-                foreach (var e in _semaphoreEntries)
+                lock (_semaphoreEntries)
                 {
-                    if (e == entry && remains - entry.Usage >= 0)
+                    int remains = Quantity;
+                    foreach (var e in _semaphoreEntries)
                     {
-                        canExecute = true;
-                    }
+                        if (e == entry && remains - entry.Usage >= 0)
+                        {
+                            return true;
+                        }
 
-                    remains -= e.Usage;
-                    if (remains <= 0)
-                    {
-                        canExecute = false;
+                        remains -= e.Usage;
+                        if (remains <= 0)
+                        {
+                            return false;
+                        }
                     }
                 }
-            }
-            return await Task.FromResult(canExecute);
+                return false;
+            });
         }
     }
 }

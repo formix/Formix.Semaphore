@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Formix.Utilities.Synchronization
@@ -12,7 +10,6 @@ namespace Formix.Utilities.Synchronization
         public SemaphoreTask(Action action, int usage)
         {
             _action = action;
-
             Id = Guid.NewGuid();
             Usage = usage;
             IsRuning = false;
