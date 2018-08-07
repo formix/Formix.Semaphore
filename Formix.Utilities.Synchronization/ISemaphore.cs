@@ -7,6 +7,7 @@ namespace Formix.Utilities.Synchronization
     {
         string Name { get; }
         int Quantity { get; }
+        int Delay { get; set; }
 
         Task<bool> Execute(Action action, int usage = 1, int maxWaitTime = 0);
     }

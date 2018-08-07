@@ -5,9 +5,13 @@ namespace Formix.Utilities.Synchronization
 {
     public abstract class AbstractSemaphore : ISemaphore
     {
-        public string Name { get; protected set; }
+        public AbstractSemaphore() => Delay = 50;
 
+
+        public string Name { get; protected set; }
         public int Quantity { get; protected set; }
+        public int Delay { get; set; }
+
 
         public async Task<bool> Execute(Action action, int usage = 1, int maxWaitTime = 0)
         {
@@ -31,14 +35,14 @@ namespace Formix.Utilities.Synchronization
             }
         }
 
-        protected virtual async Task<bool> Wait(SemaphoreTask stask, int maxWaitTime, int delay = 50)
+        protected virtual async Task<bool> Wait(SemaphoreTask stask, int maxWaitTime)
         {
             await Enqueue(stask);
             var startTime = DateTime.Now;
             var maximumWaitTime = TimeSpan.FromMilliseconds(maxWaitTime);
             while (!(await CanExecute(stask)))
             {
-                await Task.Delay(delay);
+                await Task.Delay(Delay);
                 if (maxWaitTime > 0 &&
                         DateTime.Now - startTime > maximumWaitTime)
                 {
