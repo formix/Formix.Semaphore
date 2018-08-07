@@ -51,28 +51,34 @@ namespace Formix.Utilities.Synchronization
             }
         }
 
-        protected override async Task Enqueue(SemaphoreTask entry)
+        protected override async Task Enqueue(SemaphoreTask stask)
         {
             lock (_semaphoreEntries)
             {
-                _semaphoreEntries.AddLast(entry);
+                _semaphoreEntries.AddLast(stask);
             }
             await Task.CompletedTask;
         }
 
-        protected override async Task Dequeue(SemaphoreTask entry)
+        protected override async Task Dequeue(SemaphoreTask stask)
         {
             await Task.Run(() =>
             {
                 lock (_semaphoreEntries)
                 {
-                    _semaphoreEntries.Remove(entry);
+                    _semaphoreEntries.Remove(stask);
                 }
             });
         }
 
-        protected override async Task<bool> CanExecute(SemaphoreTask entry)
+        protected override async Task<bool> CanExecute(SemaphoreTask stask)
         {
+            if (stask.IsRuning)
+            {
+                throw new InvalidOperationException(
+                    $"The semaphore task {stask.Id} is already running!");
+            }
+
             return await Task.Run(() =>
             {
                 lock (_semaphoreEntries)
@@ -80,7 +86,7 @@ namespace Formix.Utilities.Synchronization
                     int remains = Quantity;
                     foreach (var e in _semaphoreEntries)
                     {
-                        if (e == entry && remains - entry.Usage >= 0)
+                        if (e == stask && remains - stask.Usage >= 0)
                         {
                             return true;
                         }
@@ -92,6 +98,7 @@ namespace Formix.Utilities.Synchronization
                         }
                     }
                 }
+
                 return false;
             });
         }

@@ -15,8 +15,8 @@ namespace Formix.Utilities.Synchronization
             IsRuning = false;
         }
 
-        public Guid Id { get; private set; }
-        public int Usage { get; private set; }
+        public Guid Id { get; }
+        public int Usage { get; }
         public bool IsRuning { get; private set; }
 
         public async Task Execute()

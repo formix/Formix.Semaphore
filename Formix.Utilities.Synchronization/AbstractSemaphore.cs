@@ -20,24 +20,23 @@ namespace Formix.Utilities.Synchronization
                     nameof(usage));
             }
 
-            var entry = new SemaphoreTask(action, usage);
-
+            var stask = new SemaphoreTask(action, usage);
             try
             {
-                return await Wait(entry, maxWaitTime);
+                return await Wait(stask, maxWaitTime);
             }
             finally
             {
-                await Signal(entry);
+                await Signal(stask);
             }
         }
 
-        protected virtual async Task<bool> Wait(SemaphoreTask entry, int maxWaitTime)
+        protected virtual async Task<bool> Wait(SemaphoreTask stask, int maxWaitTime)
         {
-            await Enqueue(entry);
+            await Enqueue(stask);
             var startTime = DateTime.Now;
             var maximumWaitTime = TimeSpan.FromMilliseconds(maxWaitTime);
-            while (!(await CanExecute(entry)))
+            while (!(await CanExecute(stask)))
             {
                 await Task.Delay(50);
                 if (maxWaitTime > 0 &&
@@ -46,17 +45,16 @@ namespace Formix.Utilities.Synchronization
                     return false;
                 }
             }
-            await entry.Execute();
+            await stask.Execute();
             return true;
         }
-        protected virtual async Task Signal(SemaphoreTask entry)
+        protected virtual async Task Signal(SemaphoreTask stask)
         {
-            await Dequeue(entry);
+            await Dequeue(stask);
         }
 
-        protected abstract Task Enqueue(SemaphoreTask entry);
-        protected abstract Task Dequeue(SemaphoreTask entry);
-
-        protected abstract Task<bool> CanExecute(SemaphoreTask entry);
+        protected abstract Task Enqueue(SemaphoreTask stask);
+        protected abstract Task Dequeue(SemaphoreTask stask);
+        protected abstract Task<bool> CanExecute(SemaphoreTask stask);
     }
 }
