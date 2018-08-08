@@ -29,6 +29,12 @@ namespace Formix.Utilities.Synchronization
 
         public static Semaphore Initialize(string name, int quantity)
         {
+            if (quantity <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(quantity), "The argument must be grater than 0.");
+            }
+
             lock(_semaphores)
             {
                 if (!_semaphores.ContainsKey(name))
@@ -86,7 +92,7 @@ namespace Formix.Utilities.Synchronization
                     int remains = Quantity;
                     foreach (var e in _semaphoreEntries)
                     {
-                        if (e == stask && remains - stask.Usage >= 0)
+                        if (e == stask && remains >= stask.Usage)
                         {
                             return true;
                         }

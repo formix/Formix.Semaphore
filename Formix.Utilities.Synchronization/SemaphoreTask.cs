@@ -9,7 +9,13 @@ namespace Formix.Utilities.Synchronization
 
         public SemaphoreTask(Action action, int usage)
         {
-            _action = action;
+            if (usage <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(usage), $"The argument must be grater than 0.");
+            }
+
+            _action = action ?? throw new ArgumentNullException(nameof(action));
             Id = Guid.NewGuid();
             Usage = usage;
             IsRuning = false;
