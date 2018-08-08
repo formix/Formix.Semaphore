@@ -12,15 +12,13 @@ namespace Formix.Utilities.Synchronization
         public int Quantity { get; protected set; }
         public int Delay { get; set; }
 
-
         public async Task<bool> Execute(Action action, int usage = 1, int maxWaitTime = 0)
         {
             if (usage > Quantity)
             {
                 throw new ArgumentException(
-                    $"Can not use more than what is originally " +
-                        $"available in the semaphore. The quantity of " +
-                        $"{Name} available is {Quantity}.",
+                    $"Can not use {usage} {Name} from that semaphore. The " +
+                        $"quantity available is {Quantity}.",
                     nameof(usage));
             }
 
