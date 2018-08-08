@@ -38,13 +38,11 @@ namespace Formix.Utilities.Synchronization
         protected virtual async Task<bool> Wait(SemaphoreTask stask, int maxWaitTime)
         {
             await Enqueue(stask);
-            var startTime = DateTime.Now;
-            var maximumWaitTime = TimeSpan.FromMilliseconds(maxWaitTime);
+            var endTime = DateTime.Now + TimeSpan.FromMilliseconds(maxWaitTime);
             while (!(await CanExecute(stask)))
             {
                 await Task.Delay(Delay);
-                if (maxWaitTime > 0 &&
-                        DateTime.Now - startTime > maximumWaitTime)
+                if (maxWaitTime > 0 && DateTime.Now > endTime)
                 {
                     return false;
                 }
