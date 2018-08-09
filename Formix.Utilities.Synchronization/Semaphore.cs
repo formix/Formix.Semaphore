@@ -15,7 +15,13 @@ namespace Formix.Utilities.Synchronization
             _semaphores = new Dictionary<string, Semaphore>();
         }
 
-        public static Semaphore Initialize(string name = "mutex", int value = 1)
+
+        public static Semaphore Initialize()
+        {
+            return Initialize("$mutex", 1);
+        }
+
+        public static Semaphore Initialize(string name, int value)
         {
             if (value <= 0)
             {
