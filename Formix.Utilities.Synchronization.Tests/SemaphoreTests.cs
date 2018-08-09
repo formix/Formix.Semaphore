@@ -67,20 +67,20 @@ namespace Formix.Utilities.Synchronization.Tests
         {
             // Don't forget to take a look at the output, it's mesmerizing!
 
-            const int taskCount = 15;
+            const int taskCount = 25;
             var tasks = new List<Task>(taskCount + 1);
             var taskDones = new bool[taskCount];
             var rnd = new Random();
 
-            var quantity = rnd.Next(10) + 3;
-            var semaphore = Semaphore.Initialize("TestRunningALotOfTasks", quantity);
-            Console.WriteLine($"*** Semaphore Created Quantity = {quantity} ***");
+            var value = rnd.Next(10) + 3;
+            var semaphore = Semaphore.Initialize("TestRunningALotOfTasks", value);
+            Console.WriteLine($"*** Semaphore Created. Value = {value} ***");
 
             var start = DateTime.Now.Ticks / 10000;
 
             for (int i = 0; i < taskCount; i++)
             {
-                var usage = (int)Math.Ceiling((rnd.Next(quantity) + 1) / 1.5);
+                var usage = rnd.Next(value) + 1;
                 var index = i;
 
                 Console.WriteLine($"- Task {index} created, Usage = {usage}");
@@ -88,12 +88,12 @@ namespace Formix.Utilities.Synchronization.Tests
                 tasks.Add(semaphore.Execute(() =>
                 {
                     Console.WriteLine($"[{DateTime.Now.Ticks / 10000 - start}] Task {index}, usage {usage}, Started");
-                    Task.Delay(rnd.Next(25) + 10).Wait();
+                    Task.Delay(rnd.Next(40) + 10).Wait();
                     Console.WriteLine($"[{DateTime.Now.Ticks / 10000 - start}] Task {index}, usage {usage}, Running");
-                    Task.Delay(rnd.Next(25) + 10).Wait();
+                    Task.Delay(rnd.Next(40) + 10).Wait();
                     Console.WriteLine($"[{DateTime.Now.Ticks / 10000 - start}] Task {index}, usage {usage}, Done");
                     taskDones[index] = true;
-                    Task.Delay(rnd.Next(25) + 10).Wait();
+                    Task.Delay(rnd.Next(40) + 10).Wait();
                 },
                 usage));
             }
@@ -122,11 +122,16 @@ namespace Formix.Utilities.Synchronization.Tests
                         Console.WriteLine($"RunningTaskUsage: {lastRunningTaskUsage}");
                     }
                     
-                    // Make sure that no task overrun the semaphore quantity.
-                    Assert.IsTrue(semaphore.Quantity >= semaphore.RunningTaskUsage);
+                    // Make sure that no task overrun the semaphore value.
+                    Assert.IsTrue(semaphore.Value >= semaphore.RunningTaskUsage);
 
                     await Task.Delay(5);
                 }
+
+                Console.WriteLine($"TotalTaskCount: {semaphore.TotalTaskCount}");
+                Console.WriteLine($"RunningTaskCount: {semaphore.RunningTaskCount}");
+                Console.WriteLine($"RunningTaskUsage: {semaphore.RunningTaskUsage}");
+
             });
 
             tasks.Add(monitoringTask);

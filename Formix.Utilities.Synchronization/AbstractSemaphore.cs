@@ -9,16 +9,16 @@ namespace Formix.Utilities.Synchronization
 
 
         public string Name { get; protected set; }
-        public int Quantity { get; protected set; }
+        public int Value { get; protected set; }
         public int Delay { get; set; }
 
         public async Task<bool> Execute(Action action, int usage = 1, int maxWaitTime = 0)
         {
-            if (usage > Quantity)
+            if (usage > Value)
             {
                 throw new ArgumentException(
                     $"Can not use {usage} {Name} from that semaphore. The " +
-                        $"quantity available is {Quantity}.",
+                        $"semaphore initial value is {Value}.",
                     nameof(usage));
             }
 

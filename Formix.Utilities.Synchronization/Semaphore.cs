@@ -15,12 +15,12 @@ namespace Formix.Utilities.Synchronization
             _semaphores = new Dictionary<string, Semaphore>();
         }
 
-        public static Semaphore Initialize(string name = "mutex", int quantity = 1)
+        public static Semaphore Initialize(string name = "mutex", int value = 1)
         {
-            if (quantity <= 0)
+            if (value <= 0)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(quantity), "The argument must be grater than 0.");
+                    nameof(value), "The argument must be grater than 0.");
             }
 
             lock (_semaphores)
@@ -28,17 +28,17 @@ namespace Formix.Utilities.Synchronization
                 if (!_semaphores.ContainsKey(name))
                 {
                     _semaphores.Add(name,
-                        new Semaphore(name, quantity));
+                        new Semaphore(name, value));
                 }
 
                 var semaphore = _semaphores[name];
-                if (semaphore.Quantity != quantity)
+                if (semaphore.Value != value)
                 {
                     throw new InvalidOperationException(
                         $"You cannot initialize the semaphore {name} " +
-                            $"with a quantity of {quantity}. That " +
+                            $"with a value of {value}. That " +
                             $"semaphore already exist with a different " +
-                            $"quantity: {semaphore.Quantity}.");
+                            $"value: {semaphore.Value}.");
                 }
 
                 return semaphore;
@@ -50,10 +50,10 @@ namespace Formix.Utilities.Synchronization
         private LinkedList<SemaphoreTask> _semaphoreTasks;
 
 
-        private Semaphore(string name, int quantity)
+        private Semaphore(string name, int value)
         {
             Name = name;
-            Quantity = quantity;
+            Value = value;
             _semaphoreTasks = new LinkedList<SemaphoreTask>();
         }
 
@@ -127,7 +127,7 @@ namespace Formix.Utilities.Synchronization
             {
                 lock (_semaphoreTasks)
                 {
-                    int remains = Quantity;
+                    int remains = Value;
                     foreach (var e in _semaphoreTasks)
                     {
                         if (e == stask && remains >= stask.Usage)
