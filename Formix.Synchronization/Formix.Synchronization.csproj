@@ -3,10 +3,20 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Authors>Jean-Philippe Gravel</Authors>
     <Company>formix.org</Company>
     <Copyright>Jean-Philippe Gravel, all rights reserved, 2018</Copyright>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/formix/Formix.Synchronization/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/formix/Formix.Synchronization</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/formix/Formix.Synchronization.git</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <NeutralLanguage>English</NeutralLanguage>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Description>Awaitable asynchronous .NET Standard semaphore implementation.</Description>
+    <PackageTags>synchronization awaitable samaphore thread multithread</PackageTags>
+    <PackageReleaseNotes>First Public release. Fully tested and working Semaphore.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
