@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>Jean-Philippe Gravel</Authors>
+    <Company>formix.org</Company>
+    <Copyright>Jean-Philippe Gravel, all rights reserved, 2018</Copyright>
+  </PropertyGroup>
+
+</Project>

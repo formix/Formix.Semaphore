@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Formix.Utilities.Synchronization.Tests
+namespace Formix.Synchronization.Tests
 {
     [TestClass]
     public class SemaphoreTests
@@ -67,7 +67,7 @@ namespace Formix.Utilities.Synchronization.Tests
         {
             // Don't forget to take a look at the output, it's mesmerizing!
 
-            const int taskCount = 25;
+            const int taskCount = 20;
             var tasks = new List<Task>(taskCount + 1);
             var taskDones = new bool[taskCount];
             var rnd = new Random();

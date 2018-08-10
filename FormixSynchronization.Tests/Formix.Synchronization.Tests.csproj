@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Formix.Utilities.Synchronization\Formix.Utilities.Synchronization.csproj" />
+    <ProjectReference Include="..\Formix.Synchronization\Formix.Synchronization.csproj" />
   </ItemGroup>
 
 </Project>

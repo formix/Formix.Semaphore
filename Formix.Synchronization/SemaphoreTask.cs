@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Formix.Utilities.Synchronization
+namespace Formix.Synchronization
 {
     public class SemaphoreTask
     {
