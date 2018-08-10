@@ -1,2 +1,5 @@
 # Formix.Synchronization
-.NET Standard 2.0 implementation of an awaitable semaphore.
+.NET Standard implementation of an awaitable semaphore.
+
+# Usage
+

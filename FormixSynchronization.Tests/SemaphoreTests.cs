@@ -8,6 +8,8 @@ namespace Formix.Synchronization.Tests
     [TestClass]
     public class SemaphoreTests
     {
+        private static Random _rnd = new Random();
+
         [TestMethod]
         public void TestInstanceReutilization()
         {
@@ -60,6 +62,55 @@ namespace Formix.Synchronization.Tests
 
             Assert.AreEqual(1, itemList[0]);
             Assert.AreEqual(2, itemList[1]);
+        }
+
+
+        [TestMethod]
+        public void DocumentationDemoCode()
+        {
+            var limitedConnSemaphore = Semaphore.Initialize("ServerConnections", 5);
+            var tasks = new List<Task>();
+            var rnd = new Random();
+
+            for (int i = 0; i < 25; i++)
+            {
+                var taskNumber = i;
+                tasks.Add(limitedConnSemaphore.Execute(async () =>
+                {
+                    await SaveValue(taskNumber, rnd.Next(100) + 25);
+                }));
+            }
+
+            // Adds a monitor in parallel in its own task.
+            tasks.Add(Task.Run(async () =>
+            {
+                var lastRunningTasks = 0;
+                while (limitedConnSemaphore.TotalTaskCount > 0)
+                {
+                    if (lastRunningTasks != limitedConnSemaphore.RunningTaskCount)
+                    {
+                        lastRunningTasks = limitedConnSemaphore.RunningTaskCount;
+                        Console.WriteLine(
+                            $"Number of task running: {lastRunningTasks}");
+                    }
+                    await Task.Delay(1);
+                }
+
+                // 0 tasks should be running here obviously but lets write it anyway...
+                Console.WriteLine(
+                    $"Number of task running: {limitedConnSemaphore.RunningTaskCount}");
+            }));
+
+            Task.WaitAll(tasks.ToArray());
+        }
+
+        private async Task SaveValue(int taskNumber, int value)
+        {
+            // Connects to the server, do a few things, simulates the save 
+            // operation...
+            await Task.Delay(_rnd.Next(40) + 10);
+            Console.WriteLine($"Task {taskNumber}: Saving the value {value}.");
+            await Task.Delay(_rnd.Next(40) + 10);
         }
 
         [TestMethod]
