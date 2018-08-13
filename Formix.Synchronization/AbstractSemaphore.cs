@@ -62,7 +62,8 @@ namespace Formix.Synchronization
             {
                 await Task.Delay(Delay);
             }
-            await semtask.Execute();
+            semtask.Start();
+            await semtask;
         }
 
         /// <summary>

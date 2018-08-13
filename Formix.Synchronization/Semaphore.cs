@@ -133,10 +133,10 @@ namespace Formix.Synchronization
         /// or false otherwise.</returns>
         protected override async Task<bool> CanExecute(SemaphoreTask semtask)
         {
-            if (semtask.IsRuning)
+            if (semtask.Status == TaskStatus.Running)
             {
                 throw new InvalidOperationException(
-                    $"The semaphore task {semtask.Id} is already running!");
+                    $"The semaphore task {semtask.TaskId} is already running!");
             }
 
             return await Task.Run(() =>

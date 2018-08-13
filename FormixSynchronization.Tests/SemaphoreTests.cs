@@ -121,7 +121,7 @@ namespace Formix.Synchronization.Tests
                 {
                     // Make sure that no task overrun the semaphore value.
                     var totalUsage = semaphore.Tasks
-                        .Where(t => t.IsRuning)
+                        .Where(t => t.Status == TaskStatus.Running)
                         .Sum(t => t.Usage);
 
                     Assert.IsTrue(semaphore.Value >= totalUsage);
@@ -134,8 +134,8 @@ namespace Formix.Synchronization.Tests
                 lock (semaphore.Tasks)
                 {
                     var samaphoreTasksCount = semaphore.Tasks.Count();
-                    var semaphoreRunningTasksCount = semaphore.Tasks.Where(t => t.IsRuning).Count();
-                    var semaphoreRunningTasksUsage = semaphore.Tasks.Where(t => t.IsRuning).Sum(t => t.Usage);
+                    var semaphoreRunningTasksCount = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Count();
+                    var semaphoreRunningTasksUsage = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Sum(t => t.Usage);
 
                     Assert.AreEqual(0, samaphoreTasksCount);
                     Assert.AreEqual(0, semaphoreRunningTasksCount);
@@ -160,8 +160,8 @@ namespace Formix.Synchronization.Tests
             lock (semaphore.Tasks)
             {
                 var samaphoreTasksCount = semaphore.Tasks.Count();
-                var semaphoreRunningTasksCount = semaphore.Tasks.Where(t => t.IsRuning).Count();
-                var semaphoreRunningTasksUsage = semaphore.Tasks.Where(t => t.IsRuning).Sum(t => t.Usage);
+                var semaphoreRunningTasksCount = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Count();
+                var semaphoreRunningTasksUsage = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Sum(t => t.Usage);
 
                 if (semaphoreStatuses["TotalTasksCount"] != samaphoreTasksCount)
                 {
