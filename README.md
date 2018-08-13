@@ -91,3 +91,84 @@ public void TestRunningALotOfTasks()
     }
 }
 ```
+
+The rsulting trace shows that the Semaphore ensured that its value was never exceeded by running tasks usage:
+```
+*** Semaphore Created. Value = 10 ***
+- Task 0 created, Usage = 5
+- Task 1 created, Usage = 2
+- Task 2 created, Usage = 10
+- Task 3 created, Usage = 2
+- Task 4 created, Usage = 4
+- Task 5 created, Usage = 9
+- Task 6 created, Usage = 5
+- Task 7 created, Usage = 3
+- Task 8 created, Usage = 1
+- Task 9 created, Usage = 8
+[1] Task 1, usage 2, Started
+[1] Task 0, usage 5, Started
+TotalTasksCount: 10
+RunningTasksCount: 2
+RunningTasksUsage: 7/10
+[1] Task 1, usage 2, Running
+[1] Task 0, usage 5, Running
+[1] Task 1, usage 2, Done
+[1] Task 0, usage 5, Done
+TotalTasksCount: 9
+RunningTasksCount: 1
+RunningTasksUsage: 5/10
+TotalTasksCount: 8
+[118] Task 2, usage 10, Started
+RunningTasksUsage: 10/10
+[118] Task 2, usage 10, Running
+[118] Task 2, usage 10, Done
+RunningTasksCount: 0
+[214] Task 3, usage 2, Started
+RunningTasksUsage: 0/10
+[214] Task 3, usage 2, Running
+TotalTasksCount: 7
+RunningTasksCount: 1
+RunningTasksUsage: 2/10
+[227] Task 4, usage 4, Started
+RunningTasksCount: 2
+RunningTasksUsage: 6/10
+[214] Task 3, usage 2, Done
+[227] Task 4, usage 4, Running
+[227] Task 4, usage 4, Done
+TotalTasksCount: 6
+RunningTasksCount: 1
+RunningTasksUsage: 4/10
+[368] Task 5, usage 9, Started
+TotalTasksCount: 5
+RunningTasksUsage: 9/10
+[368] Task 5, usage 9, Running
+[368] Task 5, usage 9, Done
+RunningTasksCount: 0
+RunningTasksUsage: 0/10
+[478] Task 8, usage 1, Started
+TotalTasksCount: 4
+[492] Task 6, usage 5, Started
+[492] Task 7, usage 3, Started
+RunningTasksCount: 3
+RunningTasksUsage: 9/10
+[478] Task 8, usage 1, Running
+[492] Task 7, usage 3, Running
+[492] Task 6, usage 5, Running
+[492] Task 6, usage 5, Done
+[492] Task 7, usage 3, Done
+[478] Task 8, usage 1, Done
+TotalTasksCount: 3
+RunningTasksCount: 2
+RunningTasksUsage: 4/10
+TotalTasksCount: 2
+RunningTasksCount: 1
+RunningTasksUsage: 1/10
+[620] Task 9, usage 8, Started
+RunningTasksUsage: 8/10
+TotalTasksCount: 1
+[620] Task 9, usage 8, Running
+[620] Task 9, usage 8, Done
+RunningTasksCount: 0
+RunningTasksUsage: 0/10
+TotalTasksCount: 0
+```
