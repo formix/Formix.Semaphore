@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace Formix.Synchronization
 {
+    /// <summary>
+    /// In-process implementation of the AbstractSemaphore.
+    /// </summary>
     public class Semaphore : AbstractSemaphore
     {
         #region static members
@@ -15,12 +18,28 @@ namespace Formix.Synchronization
             _semaphores = new Dictionary<string, Semaphore>();
         }
 
-
+        /// <summary>
+        /// Creates a global semaphore that behaves like a simple mutex.
+        /// </summary>
+        /// <returns>A semaphore called '$mutex' with a value of 1.</returns>
         public static Semaphore Initialize()
         {
             return Initialize("$mutex", 1);
         }
 
+        /// <summary>
+        /// Initialize a semaphore in the global context with the given name 
+        /// and value. If a semaphore exists with the same name and value, 
+        /// that semaphore instance will be returned instead of creating a 
+        /// new one.
+        /// </summary>
+        /// <param name="name">The name of the semaphore to initialize.</param>
+        /// <param name="value">The value given to the semaphore.</param>
+        /// <returns>A semaphore that can pile-up and execute tasks within the 
+        /// given semaphore value range.</returns>
+        /// <remarks>Initializing multiple semaphore bearing the same name 
+        /// but with different values will throw an 
+        /// InvalidOperationException.</remarks>
         public static Semaphore Initialize(string name, int value)
         {
             if (value <= 0)
@@ -52,81 +71,72 @@ namespace Formix.Synchronization
         }
         #endregion
 
+        private FixedLinkedList<SemaphoreTask> _semaphoreTasks;
+        private readonly IEnumerable<SemaphoreTask> _readOnlySemaphoreTasks;
 
-        private LinkedList<SemaphoreTask> _semaphoreTasks;
+        /// <summary>
+        /// List of SemaphoreTasks that are queued.
+        /// </summary>
+        public override IEnumerable<SemaphoreTask> Tasks => _readOnlySemaphoreTasks;
 
 
         private Semaphore(string name, int value)
         {
             Name = name;
             Value = value;
-            _semaphoreTasks = new LinkedList<SemaphoreTask>();
+            _semaphoreTasks = new FixedLinkedList<SemaphoreTask>();
+            _readOnlySemaphoreTasks = new ReadOnlyCollection<SemaphoreTask>(_semaphoreTasks);
         }
 
-        public int TotalTaskCount
-        {
-            get
-            {
-                lock (_semaphoreTasks)
-                {
-                    return _semaphoreTasks.Count;
-                }
-            }
-        }
-
-        public int RunningTaskCount
-        {
-            get
-            {
-                lock (_semaphoreTasks)
-                {
-                    return _semaphoreTasks
-                        .Where(t => t.IsRuning)
-                        .Count();
-                }
-            }
-        }
-
-        public int RunningTaskUsage
-        {
-            get
-            {
-                lock (_semaphoreTasks)
-                {
-                    return _semaphoreTasks
-                        .Where(t => t.IsRuning)
-                        .Sum(t => t.Usage);
-                }
-            }
-        }
-
-
-        protected override async Task Enqueue(SemaphoreTask stask)
+        /// <summary>
+        /// Enqueues a new semaphore task to be executed once enough 
+        /// resources (Semaphore.Value) are available.
+        /// </summary>
+        /// <param name="semtask">A semaphore task to execute.</param>
+        /// <returns>An awaitable task.</returns>
+        protected override async Task Enqueue(SemaphoreTask semtask)
         {
             lock (_semaphoreTasks)
             {
-                _semaphoreTasks.AddLast(stask);
+                _semaphoreTasks.AddLast(semtask);
             }
             await Task.CompletedTask;
         }
 
-        protected override async Task Dequeue(SemaphoreTask stask)
+        /// <summary>
+        /// Removes a task from the head section of the queue.
+        /// </summary>
+        /// <param name="semtask">The semaphore task to remove.</param>
+        /// <returns>An awaitable task.</returns>
+        /// <remarks>The task removed may not be the task at the head of the 
+        /// queue. It is possible that a task deeper in the "head" section 
+        /// terminated before and thus needs to be removed.</remarks>
+        protected override async Task Dequeue(SemaphoreTask semtask)
         {
             await Task.Run(() =>
             {
                 lock (_semaphoreTasks)
                 {
-                    _semaphoreTasks.Remove(stask);
+                    _semaphoreTasks.Remove(semtask);
                 }
             });
         }
 
-        protected override async Task<bool> CanExecute(SemaphoreTask stask)
+        /// <summary>
+        /// Checks if the remaining resources available 
+        /// (Semaphore.Value - sum of running tasks usage) are enough to 
+        /// start the current task.
+        /// </summary>
+        /// <param name="semtask">The semaphore task that we are checking.</param>
+        /// <returns>An awaitable task that will result in true if the 
+        /// SemaphoreTask.Usage is less or equal to the remaining resources 
+        /// or false otherwise.</returns>
+        protected override async Task<bool> CanExecute(SemaphoreTask semtask)
         {
-            if (stask.IsRuning)
+            if (semtask.IsRuning)
             {
                 throw new InvalidOperationException(
-                    $"The semaphore task {stask.Id} is already running!");
+                    $"The semaphore task {semtask.Id} is already running!");
             }
 
             return await Task.Run(() =>
@@ -136,7 +146,7 @@ namespace Formix.Synchronization
                     int remains = Value;
                     foreach (var e in _semaphoreTasks)
                     {
-                        if (e == stask && remains >= stask.Usage)
+                        if (e == semtask && remains >= semtask.Usage)
                         {
                             return true;
                         }
