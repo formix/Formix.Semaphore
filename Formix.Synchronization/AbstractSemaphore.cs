@@ -27,7 +27,7 @@ namespace Formix.Synchronization
 
         public abstract IEnumerable<SemaphoreTask> Tasks { get; }
 
-        public async Task<SemaphoreTask> Execute(Action action, int usage = 1, int maxWaitTime = 0)
+        public async Task Execute(Action action, int usage = 1)
         {
             if (usage > Value)
             {
@@ -40,25 +40,7 @@ namespace Formix.Synchronization
             var semtask = new SemaphoreTask(action, usage);
             try
             {
-                var taskExecuted = await Wait(semtask, maxWaitTime);
-                if (!taskExecuted)
-                {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    // Start another task out of the awaitable chain
-                    Task.Run(async () => 
-                    {
-                        try
-                        {
-                            await WaitWithoutEnqueue(semtask, 0);
-                        }
-                        finally
-                        {
-                            await Signal(semtask);
-                        }
-                    });
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                }
-                return semtask;
+                await Wait(semtask);
             }
             finally
             {
@@ -67,36 +49,20 @@ namespace Formix.Synchronization
         }
 
         /// <summary>
-        /// Wait until the given SemaphoreTask finish to execute or return 
-        /// before the maxWaitTime is expired, given that the SemaphoreTask 
-        /// is not started. The task starts only when there is enough Value 
-        /// in the semaphore to execute the given task.
+        /// Wait until the given SemaphoreTask finish to execute. The task 
+        /// starts only when there is enough Value in the semaphore to 
+        /// execute the given task.
         /// </summary>
         /// <param name="semtask">The semaphore task to wait for.</param>
-        /// <param name="maxWaitTime">How long in milliseconds shall the 
-        /// wait function blocks before the SemaphoreTask starts. If this 
-        /// value is reached before the task is started, returns false.</param>
-        /// <returns>True if the SemaphoreTask executed, false if maxWaitTime 
-        /// was reached and the SemaphoreTask did not execute.</returns>
-        protected virtual async Task<bool> Wait(SemaphoreTask semtask, int maxWaitTime)
+        /// <returns>An awaitable task.</returns>
+        protected virtual async Task Wait(SemaphoreTask semtask)
         {
             await Enqueue(semtask);
-            return await WaitWithoutEnqueue(semtask, maxWaitTime);
-        }
-
-        private async Task<bool> WaitWithoutEnqueue(SemaphoreTask semtask, int maxWaitTime)
-        {
-            var endTime = DateTime.Now + TimeSpan.FromMilliseconds(maxWaitTime);
             while (!(await CanExecute(semtask)))
             {
                 await Task.Delay(Delay);
-                if (maxWaitTime > 0 && DateTime.Now > endTime)
-                {
-                    return false;
-                }
             }
             await semtask.Execute();
-            return true;
         }
 
         /// <summary>

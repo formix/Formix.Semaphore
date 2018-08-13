@@ -55,6 +55,18 @@ namespace Formix.Synchronization
         /// </summary>
         public bool IsDone { get; private set; }
 
+
+        public async Task Wait(int delay = 5)
+        {
+            var start = DateTime.Now;
+            var delayPeriod = TimeSpan.FromMilliseconds(delay);
+            while (!IsDone || 
+                    ((delay > 0) && (DateTime.Now - start < delayPeriod)))
+            {
+                await Task.Delay(delay);
+            }
+        }
+
         internal async Task Execute()
         {
             if (IsRuning)

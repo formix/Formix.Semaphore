@@ -36,19 +36,13 @@ namespace Formix.Synchronization
         IEnumerable<SemaphoreTask> Tasks { get; }
 
         /// <summary>
-        /// Executes the given action with an optional usage and maxWaitTime.
+        /// Executes the given action with an optional usage value.
         /// </summary>
         /// <param name="action">The action to execute.</param>
         /// <param name="usage">How much of the Semaphore.Value does that 
         /// action consumes while executing. Must be grater than zero and 
-        /// lower or equal to the Semaphore.Value value.</param>
-        /// <param name="maxWaitTime">How long shall the method block while 
-        /// the semaphore waits before the action begins to execute.</param>
-        /// <returns>A task that will result in a SemaphoreTask</returns>
-        /// <remarks>If the action starts executing before the maxWaitTime 
-        /// value is reached and the wait time + execution time takes 
-        /// longer than this value, the execution of the action will 
-        /// terminate without being interrupted.</remarks>
-        Task<SemaphoreTask> Execute(Action action, int usage = 1, int maxWaitTime = 0);
+        /// lower or equal to the Semaphore.Value value. Defaults to 1.</param>
+        /// <returns>An awaitable task</returns>
+        Task Execute(Action action, int usage = 1);
     }
 }
