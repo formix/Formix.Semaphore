@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Formix.Synchronization.Tests
+namespace Formix.Semaphore.Tests
 {
     [TestClass]
     public class SemaphoreTests

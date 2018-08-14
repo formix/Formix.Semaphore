@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2018
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9CF1DED0-40D3-430A-ABDF-B66F9097F424}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formix.Semaphore", "Formix.Semaphore\Formix.Semaphore.csproj", "{513D5BD0-12C1-434D-B725-154AEFDFFF3C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formix.Semaphore.Tests", "Formix.Semaphore.Tests\Formix.Semaphore.Tests.csproj", "{4575577E-5CD0-4FBA-828D-A544E1A0A0DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{513D5BD0-12C1-434D-B725-154AEFDFFF3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{513D5BD0-12C1-434D-B725-154AEFDFFF3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{513D5BD0-12C1-434D-B725-154AEFDFFF3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{513D5BD0-12C1-434D-B725-154AEFDFFF3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4575577E-5CD0-4FBA-828D-A544E1A0A0DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4575577E-5CD0-4FBA-828D-A544E1A0A0DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4575577E-5CD0-4FBA-828D-A544E1A0A0DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4575577E-5CD0-4FBA-828D-A544E1A0A0DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D752F2C9-2DB5-4DB3-8AC2-876D316108BF}
+	EndGlobalSection
+EndGlobal

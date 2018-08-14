@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-namespace Formix.Synchronization
+namespace Formix.Semaphore
 {
     /// <summary>
     /// In-process implementation of the AbstractSemaphore.

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Formix.Synchronization
+namespace Formix.Semaphore
 {
     public class SemaphoreTask : Task
     {

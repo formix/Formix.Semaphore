@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Formix.Synchronization
+namespace Formix.Semaphore
 {
     /// <summary>
     /// Base implementation of a Semaphore. Abstract away Wait and Signal 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Formix.Synchronization
+namespace Formix.Semaphore
 {
     /// <summary>
     /// I don't thing that needs any documentation.
