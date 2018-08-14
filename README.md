@@ -5,8 +5,8 @@ In-process .NET Standard implementation of an awaitable semaphore.
 A semaphore is an abstraction on a resource that is available in limited 
 quantity. For example, you could have a subscription to an online service
 that limits the number of simultaneous connection from your account to two.
-To make sure you don't try to use more connection than you should, just run
-your code in an asynchronous method inside the semaphore.
+To make sure you don't use more connection than you should at any time, run
+your code using the semaphore's `Execute` method.
 
 ```c#
         var semaphore = Semaphore.Initialize("connections", 2);
