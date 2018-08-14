@@ -1,5 +1,5 @@
-# Formix.Synchronization
-.NET Standard implementation of an awaitable semaphore.
+# Formix.Semaphore
+In-process .NET Standard implementation of an awaitable semaphore.
 
 # Usage
 I am putting a test case here for quick access. I'll improve that section later.
