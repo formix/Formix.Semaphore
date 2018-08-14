@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Formix.Semaphore.Tests.App
@@ -7,7 +8,8 @@ namespace Formix.Semaphore.Tests.App
     {
         static void Main(string[] args)
         {
-            ExecuteThreeTasks();
+            var semaphore = ExecuteThreeTasks();
+            Task.WaitAll(semaphore.Tasks.ToArray());
             Console.WriteLine("Waiting!!!");
             Task.Delay(2500).Wait();
         }
@@ -16,7 +18,7 @@ namespace Formix.Semaphore.Tests.App
 
 
 
-        private static void ExecuteThreeTasks()
+        private static Semaphore ExecuteThreeTasks()
         {
             var semaphore = Semaphore.Initialize("connections", 2);
 
@@ -41,7 +43,9 @@ namespace Formix.Semaphore.Tests.App
                 Console.WriteLine("Task 3 done.");
             });
 
-            Task.WaitAll(task1, task2, task3);
+            return semaphore;
+
+            //Task.WaitAll(task1, task2, task3);
         }
     }
 }

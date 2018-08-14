@@ -65,6 +65,43 @@ namespace Formix.Semaphore.Tests
             Assert.AreEqual(2, itemList[1]);
         }
 
+        [TestMethod]
+        public async Task TestWithThreeTasks()
+        {
+            await ExecuteThreeTasks();
+        }
+
+        private async Task ExecuteThreeTasks()
+        {
+            var semaphore = Semaphore.Initialize("connections", 2);
+
+            // Lets these tasks execute asynchronously
+            var task1 = semaphore.Execute(() =>
+            {
+                Console.WriteLine("Task 1 started.");
+                Task.Delay(250).Wait();
+                Console.WriteLine("Task 1 done.");
+            });
+
+            var task2 = semaphore.Execute(() =>
+            {
+                Console.WriteLine("Task 2 started.");
+                Task.Delay(500).Wait();
+                Console.WriteLine("Task 2 done.");
+            });
+
+            var task3 = semaphore.Execute(() =>
+            {
+                Console.WriteLine("Task 3 started.");
+                Task.Delay(350).Wait();
+                Console.WriteLine("Task 3 done.");
+            });
+
+            Task.WaitAll(task1, task2, task3);
+
+            await Task.CompletedTask;
+        }
+
 
         [TestMethod]
         public void TestRunningALotOfTasks()

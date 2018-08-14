@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Formix.Semaphore
@@ -27,6 +29,14 @@ namespace Formix.Semaphore
 
         public abstract IEnumerable<SemaphoreTask> Tasks { get; }
 
+        /// <summary>
+        /// Executes an action in another thread.
+        /// </summary>
+        /// <param name="action">The action to execute. That action cannot be 
+        /// marked async.</param>
+        /// <param name="usage">How much of the semaphore does that task 
+        /// use.</param>
+        /// <returns>A task running in another thread.</returns>
         public async Task Execute(Action action, int usage = 1)
         {
             if (usage > Value)
@@ -35,6 +45,13 @@ namespace Formix.Semaphore
                     $"Can not use {usage} {Name} from that semaphore. The " +
                         $"semaphore initial value is {Value}.",
                     nameof(usage));
+            }
+
+            if (action.Method.IsDefined(
+                    typeof(AsyncStateMachineAttribute), false))
+            {
+                throw new ArgumentException(
+                    nameof(action), "Can not execute async methods.");
             }
 
             var semtask = new SemaphoreTask(action, usage);
