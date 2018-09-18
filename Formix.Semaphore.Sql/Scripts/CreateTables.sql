@@ -8,3 +8,11 @@ GO
 
 CREATE INDEX IX_SemaphoreTokens_Name_TimeStamp ON SemaphoreTokens([Name] ASC, [TimeStamp] ASC);
 GO
+
+/* Run that query to validate execution plan.
+
+SELECT Id, Usage, [TimeStamp]
+FROM SemaphoreTokens WHERE Name = ''
+ORDER BY [TimeStamp] ASC
+
+*/
