@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Formix.Semaphore
@@ -63,27 +64,67 @@ namespace Formix.Semaphore
         }
 
         /// <summary>
+        /// Checks if the remaining resources available 
+        /// (Semaphore.Value - sum of running tasks usage) are enough to 
+        /// start the current task.
+        /// </summary>
+        /// <param name="token">The semaphore task that we are checking.</param>
+        /// <returns>An awaitable task that will result in true if the 
+        /// SemaphoreTask.Usage is less or equal to the remaining resources 
+        /// or false otherwise.</returns>
+        protected bool CanExecute(Token token)
+        {
+            if (token.IsRunning)
+            {
+                throw new InvalidOperationException(
+                    $"The semaphore task associated with the token " +
+                    $"{token.Id} is already running!");
+            }
+
+            if (token.IsDone)
+            {
+                throw new InvalidOperationException(
+                    $"The semaphore task associated with the token " +
+                    $"{token.Id} is is done executing. Create another " +
+                    $"token to overlook another task.");
+            }
+
+            lock (Tokens)
+            {
+                int remains = Value;
+                foreach (var e in Tokens)
+                {
+                    if (e == token && remains >= token.Usage)
+                    {
+                        return true;
+                    }
+
+                    remains -= e.Usage;
+                    if (remains <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Implements this method to add the semaphore task tou the 
         /// underlying queue used to keep the task list.
         /// </summary>
-        /// <param name="semtask">The semaphore task to add to the 
+        /// <param name="token">The semaphore task to add to the 
         /// queue.</param>
-        protected abstract void Enqueue(Token semtask);
+        protected abstract void Enqueue(Token token);
 
         /// <summary>
         /// Implements this method to remove the semaphore task from the 
         /// underlying execution queue.
         /// </summary>
-        /// <param name="semtask">The semaphore task to remove from the 
+        /// <param name="token">The semaphore task to remove from the 
         /// queue.</param>
-        protected abstract void Dequeue(Token semtask);
+        protected abstract void Dequeue(Token token);
 
-        /// <summary>
-        /// Implements this method to return if a semaphore task can be 
-        /// executed.
-        /// </summary>
-        /// <param name="semtask">The semaphore task that will be started if 
-        /// true is returned.</param>
-        protected abstract bool CanExecute(Token semtask);
     }
 }

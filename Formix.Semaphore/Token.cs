@@ -8,6 +8,19 @@ namespace Formix.Semaphore
     public class Token : IComparable<Token>
     {
         /// <summary>
+        /// Creates a new token with the given values
+        /// </summary>
+        /// <param name="id">The token Id</param>
+        /// <param name="usage">The token usage.</param>
+        /// <param name="timeStamp">The token time stamp</param>
+        public Token(Guid id, int usage, long timeStamp)
+            : this(usage)
+        {
+            Id = id;
+            TimeStamp = timeStamp;
+        }
+
+        /// <summary>
         /// Creates a SemaphoreTask with a given action to execute and a 
         /// usage value.
         /// </summary>

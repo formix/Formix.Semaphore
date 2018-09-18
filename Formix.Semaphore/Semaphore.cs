@@ -69,96 +69,49 @@ namespace Formix.Semaphore
         }
         #endregion
 
-        private ICollection<Token> _semaphoreTasks;
+        private ICollection<Token> _tasks;
 
         /// <summary>
         /// List of SemaphoreTasks that are queued.
         /// </summary>
-        public override IEnumerable<Token> Tokens => _semaphoreTasks;
+        public override IEnumerable<Token> Tokens => _tasks;
 
 
         private Semaphore(string name, int value)
         {
             Name = name;
             Value = value;
-            _semaphoreTasks = new SortedSet<Token>();
+            _tasks = new SortedSet<Token>();
         }
 
         /// <summary>
         /// Enqueues a new semaphore task to be executed once enough 
         /// resources (Semaphore.Value) are available.
         /// </summary>
-        /// <param name="semtask">A semaphore task to execute.</param>
+        /// <param name="token">A semaphore task to execute.</param>
         /// <returns>An awaitable task.</returns>
-        protected override void Enqueue(Token semtask)
+        protected override void Enqueue(Token token)
         {
-            lock (_semaphoreTasks)
+            lock (_tasks)
             {
-                _semaphoreTasks.Add(semtask);
+                _tasks.Add(token);
             }
         }
 
         /// <summary>
         /// Removes a task from the head section of the queue.
         /// </summary>
-        /// <param name="semtask">The semaphore task to remove.</param>
+        /// <param name="token">The semaphore task to remove.</param>
         /// <returns>An awaitable task.</returns>
         /// <remarks>The task removed may not be the task at the head of the 
         /// queue. It is possible that a task deeper in the "head" section 
         /// terminated before and thus needs to be removed.</remarks>
-        protected override void Dequeue(Token semtask)
+        protected override void Dequeue(Token token)
         {
-            lock (_semaphoreTasks)
+            lock (_tasks)
             {
-                _semaphoreTasks.Remove(semtask);
+                _tasks.Remove(token);
             }
-        }
-
-        /// <summary>
-        /// Checks if the remaining resources available 
-        /// (Semaphore.Value - sum of running tasks usage) are enough to 
-        /// start the current task.
-        /// </summary>
-        /// <param name="token">The semaphore task that we are checking.</param>
-        /// <returns>An awaitable task that will result in true if the 
-        /// SemaphoreTask.Usage is less or equal to the remaining resources 
-        /// or false otherwise.</returns>
-        protected override bool CanExecute(Token token)
-        {
-            if (token.IsRunning)
-            {
-                throw new InvalidOperationException(
-                    $"The semaphore task associated with the token " +
-                    $"{token.Id} is already running!");
-            }
-
-            if (token.IsDone)
-            {
-                throw new InvalidOperationException(
-                    $"The semaphore task associated with the token " +
-                    $"{token.Id} is is done executing. Create another " +
-                    $"token to overlook another task.");
-            }
-
-            lock (_semaphoreTasks)
-            {
-                int remains = Value;
-                foreach (var e in _semaphoreTasks)
-                {
-                    if (e == token && remains >= token.Usage)
-                    {
-                        return true;
-                    }
-
-                    remains -= e.Usage;
-                    if (remains <= 0)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 }
