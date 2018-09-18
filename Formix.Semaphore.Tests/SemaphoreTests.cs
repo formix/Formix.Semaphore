@@ -47,19 +47,29 @@ namespace Formix.Semaphore.Tests
             var itemList = new List<int>(2);
             var mutex = Semaphore.Initialize();
 
-            var task1 = mutex.Execute(() =>
+            var task1 = Task.Run(() =>
             {
-                Task.Delay(50);
+                var token1 = new Token();
+                mutex.Wait(token1);
+                Task.Delay(50).Wait();
                 itemList.Add(1);
+                mutex.Signal(token1);
             });
 
-            var task2 = mutex.Execute(() =>
+            var task2 = Task.Run(() =>
             {
+                Task.Delay(10).Wait();
+                var token2 = new Token();
+                mutex.Wait(token2);
                 itemList.Add(2);
-                Task.Delay(25);
+                Task.Delay(25).Wait();
+                mutex.Signal(token2);
             });
 
-            Task.WaitAll(task1, task2);
+            Task.WaitAll(new[] { task1, task2 }, 100000);
+
+            Assert.IsTrue(task1.IsCompleted, "Task1 did not complete!");
+            Assert.IsTrue(task2.IsCompleted, "Task2 did not complete!");
 
             Assert.AreEqual(1, itemList[0]);
             Assert.AreEqual(2, itemList[1]);
@@ -76,25 +86,34 @@ namespace Formix.Semaphore.Tests
             var semaphore = Semaphore.Initialize("connections", 2);
 
             // Lets these tasks execute asynchronously
-            var task1 = semaphore.Execute(() =>
+            var task1 = Task.Run(() =>
             {
+                var token1 = new Token();
+                semaphore.Wait(token1);
                 Console.WriteLine("Task 1 started.");
                 Task.Delay(250).Wait();
                 Console.WriteLine("Task 1 done.");
+                semaphore.Signal(token1);
             });
 
-            var task2 = semaphore.Execute(() =>
+            var task2 = Task.Run(() =>
             {
+                var token2 = new Token();
+                semaphore.Wait(token2);
                 Console.WriteLine("Task 2 started.");
                 Task.Delay(500).Wait();
                 Console.WriteLine("Task 2 done.");
+                semaphore.Signal(token2);
             });
 
-            var task3 = semaphore.Execute(() =>
+            var task3 = Task.Run(() =>
             {
+                var token3 = new Token();
+                semaphore.Wait(token3);
                 Console.WriteLine("Task 3 started.");
                 Task.Delay(350).Wait();
                 Console.WriteLine("Task 3 done.");
+                semaphore.Signal(token3);
             });
 
             Task.WaitAll(task1, task2, task3);
@@ -121,15 +140,17 @@ namespace Formix.Semaphore.Tests
             var start = DateTime.Now.Ticks / 10000;
 
             // Create dummy tasks and starts them
-            for (int i = 0; i < taskCount; i++)
+            for (int i = 0; i < 1; i++)
             {
                 // Randomize the semaphore usage for the task that will be started.
                 var usage = rnd.Next(value) + 1;
 
                 var index = i; // Store 'i' value in a local variable for later use in  lambda expression
-                tasks.Add(semaphore.Execute(() =>
+                tasks.Add(Task.Run(() =>
                 {
                     // This is the fake task code...
+                    var token = new Token(usage);
+                    semaphore.Wait(token);
                     var elapsed = DateTime.Now.Ticks / 10000 - start;
                     Console.WriteLine($"[{elapsed}] Task {index}, usage {usage}, Started");
                     Task.Delay(rnd.Next(40) + 10).Wait();
@@ -138,8 +159,8 @@ namespace Formix.Semaphore.Tests
                     Console.WriteLine($"[{elapsed}] Task {index}, usage {usage}, Done");
                     taskFinished[index] = true;
                     Task.Delay(rnd.Next(40) + 10).Wait();
-                },
-                usage));
+                    semaphore.Signal(token);
+                }));
 
                 Console.WriteLine($"- Task {index} created, Usage = {usage}");
             }
@@ -154,25 +175,29 @@ namespace Formix.Semaphore.Tests
                     { "RunningTasksUsage", 0},
                 };
 
-                while (semaphore.Tasks.Count() > 0)
+                while (semaphore.Tokens.Count() > 0)
                 {
                     // Make sure that no task overrun the semaphore value.
-                    var totalUsage = semaphore.Tasks
-                        .Where(t => t.Status == TaskStatus.Running)
-                        .Sum(t => t.Usage);
+                    var totalUsage = 0;
+                    lock(semaphore.Tokens)
+                    {
+                        totalUsage = semaphore.Tokens
+                            .Where(t => t.IsRunning)
+                            .Sum(t => t.Usage);
 
-                    Assert.IsTrue(semaphore.Value >= totalUsage);
-                    PrintSemaphoreStatus(semaphoreStatus, semaphore);
+                        Assert.IsTrue(semaphore.Value >= totalUsage);
+                        PrintSemaphoreStatus(semaphoreStatus, semaphore);
+                    }
                     await Task.Delay(5);
                 }
 
                 PrintSemaphoreStatus(semaphoreStatus, semaphore);
 
-                lock (semaphore.Tasks)
+                lock (semaphore.Tokens)
                 {
-                    var samaphoreTasksCount = semaphore.Tasks.Count();
-                    var semaphoreRunningTasksCount = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Count();
-                    var semaphoreRunningTasksUsage = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Sum(t => t.Usage);
+                    var samaphoreTasksCount = semaphore.Tokens.Count();
+                    var semaphoreRunningTasksCount = semaphore.Tokens.Where(t => t.IsRunning).Count();
+                    var semaphoreRunningTasksUsage = semaphore.Tokens.Where(t => t.IsRunning).Sum(t => t.Usage);
 
                     Assert.AreEqual(0, samaphoreTasksCount);
                     Assert.AreEqual(0, semaphoreRunningTasksCount);
@@ -194,11 +219,11 @@ namespace Formix.Semaphore.Tests
         private void PrintSemaphoreStatus(
             Dictionary<string, int> semaphoreStatuses, Semaphore semaphore)
         {
-            lock (semaphore.Tasks)
+            lock (semaphore.Tokens)
             {
-                var samaphoreTasksCount = semaphore.Tasks.Count();
-                var semaphoreRunningTasksCount = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Count();
-                var semaphoreRunningTasksUsage = semaphore.Tasks.Where(t => t.Status == TaskStatus.Running).Sum(t => t.Usage);
+                var samaphoreTasksCount = semaphore.Tokens.Count();
+                var semaphoreRunningTasksCount = semaphore.Tokens.Where(t => t.IsRunning).Count();
+                var semaphoreRunningTasksUsage = semaphore.Tokens.Where(t => t.IsRunning).Sum(t => t.Usage);
 
                 if (semaphoreStatuses["TotalTasksCount"] != samaphoreTasksCount)
                 {

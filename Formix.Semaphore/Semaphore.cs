@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 
 namespace Formix.Semaphore
 {
@@ -71,21 +69,19 @@ namespace Formix.Semaphore
         }
         #endregion
 
-        private FixedLinkedList<SemaphoreTask> _semaphoreTasks;
-        private readonly IEnumerable<SemaphoreTask> _readOnlySemaphoreTasks;
+        private ICollection<Token> _semaphoreTasks;
 
         /// <summary>
         /// List of SemaphoreTasks that are queued.
         /// </summary>
-        public override IEnumerable<SemaphoreTask> Tasks => _readOnlySemaphoreTasks;
+        public override IEnumerable<Token> Tokens => _semaphoreTasks;
 
 
         private Semaphore(string name, int value)
         {
             Name = name;
             Value = value;
-            _semaphoreTasks = new FixedLinkedList<SemaphoreTask>();
-            _readOnlySemaphoreTasks = new ReadOnlyCollection<SemaphoreTask>(_semaphoreTasks);
+            _semaphoreTasks = new SortedSet<Token>();
         }
 
         /// <summary>
@@ -94,13 +90,12 @@ namespace Formix.Semaphore
         /// </summary>
         /// <param name="semtask">A semaphore task to execute.</param>
         /// <returns>An awaitable task.</returns>
-        protected override async Task Enqueue(SemaphoreTask semtask)
+        protected override void Enqueue(Token semtask)
         {
             lock (_semaphoreTasks)
             {
-                _semaphoreTasks.AddLast(semtask);
+                _semaphoreTasks.Add(semtask);
             }
-            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -111,15 +106,12 @@ namespace Formix.Semaphore
         /// <remarks>The task removed may not be the task at the head of the 
         /// queue. It is possible that a task deeper in the "head" section 
         /// terminated before and thus needs to be removed.</remarks>
-        protected override async Task Dequeue(SemaphoreTask semtask)
+        protected override void Dequeue(Token semtask)
         {
-            await Task.Run(() =>
+            lock (_semaphoreTasks)
             {
-                lock (_semaphoreTasks)
-                {
-                    _semaphoreTasks.Remove(semtask);
-                }
-            });
+                _semaphoreTasks.Remove(semtask);
+            }
         }
 
         /// <summary>
@@ -127,40 +119,46 @@ namespace Formix.Semaphore
         /// (Semaphore.Value - sum of running tasks usage) are enough to 
         /// start the current task.
         /// </summary>
-        /// <param name="semtask">The semaphore task that we are checking.</param>
+        /// <param name="token">The semaphore task that we are checking.</param>
         /// <returns>An awaitable task that will result in true if the 
         /// SemaphoreTask.Usage is less or equal to the remaining resources 
         /// or false otherwise.</returns>
-        protected override async Task<bool> CanExecute(SemaphoreTask semtask)
+        protected override bool CanExecute(Token token)
         {
-            if (semtask.Status == TaskStatus.Running)
+            if (token.IsRunning)
             {
                 throw new InvalidOperationException(
-                    $"The semaphore task {semtask.TaskId} is already running!");
+                    $"The semaphore task associated with the token " +
+                    $"{token.Id} is already running!");
             }
 
-            return await Task.Run(() =>
+            if (token.IsDone)
             {
-                lock (_semaphoreTasks)
-                {
-                    int remains = Value;
-                    foreach (var e in _semaphoreTasks)
-                    {
-                        if (e == semtask && remains >= semtask.Usage)
-                        {
-                            return true;
-                        }
+                throw new InvalidOperationException(
+                    $"The semaphore task associated with the token " +
+                    $"{token.Id} is is done executing. Create another " +
+                    $"token to overlook another task.");
+            }
 
-                        remains -= e.Usage;
-                        if (remains <= 0)
-                        {
-                            return false;
-                        }
+            lock (_semaphoreTasks)
+            {
+                int remains = Value;
+                foreach (var e in _semaphoreTasks)
+                {
+                    if (e == token && remains >= token.Usage)
+                    {
+                        return true;
+                    }
+
+                    remains -= e.Usage;
+                    if (remains <= 0)
+                    {
+                        return false;
                     }
                 }
+            }
 
-                return false;
-            });
+            return false;
         }
     }
 }

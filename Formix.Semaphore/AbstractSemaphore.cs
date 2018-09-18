@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading;
 
 namespace Formix.Semaphore
 {
@@ -27,72 +24,42 @@ namespace Formix.Semaphore
 
         public int Delay { get; set; }
 
-        public abstract IEnumerable<SemaphoreTask> Tasks { get; }
+        public abstract IEnumerable<Token> Tokens { get; }
 
-        /// <summary>
-        /// Executes an action in another thread.
-        /// </summary>
-        /// <param name="action">The action to execute. That action cannot be 
-        /// marked async.</param>
-        /// <param name="usage">How much of the semaphore does that task 
-        /// use.</param>
-        /// <returns>A task running in another thread.</returns>
-        public async Task Execute(Action action, int usage = 1)
-        {
-            if (usage > Value)
-            {
-                throw new ArgumentException(
-                    $"Can not use {usage} {Name} from that semaphore. The " +
-                        $"semaphore initial value is {Value}.",
-                    nameof(usage));
-            }
-
-            if (action.Method.IsDefined(
-                    typeof(AsyncStateMachineAttribute), false))
-            {
-                throw new ArgumentException(
-                    nameof(action), "Can not execute async methods.");
-            }
-
-            var semtask = new SemaphoreTask(action, usage);
-            try
-            {
-                await Wait(semtask);
-            }
-            finally
-            {
-                await Signal(semtask);
-            }
-        }
 
         /// <summary>
         /// Wait until the given SemaphoreTask finish to execute. The task 
         /// starts only when there is enough Value in the semaphore to 
         /// execute the given task.
         /// </summary>
-        /// <param name="semtask">The semaphore task to wait for.</param>
+        /// <param name="token">The synchronization token used to wait 
+        /// for the task.</param>
         /// <returns>An awaitable task.</returns>
-        protected virtual async Task Wait(SemaphoreTask semtask)
+        public void Wait(Token token)
         {
-            await Enqueue(semtask);
-            while (!(await CanExecute(semtask)))
+            Enqueue(token);
+            while (!CanExecute(token))
             {
-                await Task.Delay(Delay);
+                Thread.Sleep(Delay);
             }
-            semtask.Start();
-            await semtask;
+            token.IsRunning = true;
         }
 
         /// <summary>
         /// Signal back the usage of the semaphore that was consumed by the 
         /// executing task.
         /// </summary>
-        /// <param name="semtask">The semaphore taks that ended its 
-        /// execution.</param>
+        /// <param name="token">The token used to reserve resources for the 
+        /// task that finished running.</param>
         /// <returns>An awaitable task</returns>
-        protected virtual async Task Signal(SemaphoreTask semtask)
+        public void Signal(Token token)
         {
-            await Dequeue(semtask);
+            lock (Tokens)
+            {
+                token.IsRunning = false;
+                token.IsDone = true;
+                Dequeue(token);
+            }
         }
 
         /// <summary>
@@ -101,8 +68,7 @@ namespace Formix.Semaphore
         /// </summary>
         /// <param name="semtask">The semaphore task to add to the 
         /// queue.</param>
-        /// <returns></returns>
-        protected abstract Task Enqueue(SemaphoreTask semtask);
+        protected abstract void Enqueue(Token semtask);
 
         /// <summary>
         /// Implements this method to remove the semaphore task from the 
@@ -110,8 +76,7 @@ namespace Formix.Semaphore
         /// </summary>
         /// <param name="semtask">The semaphore task to remove from the 
         /// queue.</param>
-        /// <returns>An awaitable task.</returns>
-        protected abstract Task Dequeue(SemaphoreTask semtask);
+        protected abstract void Dequeue(Token semtask);
 
         /// <summary>
         /// Implements this method to return if a semaphore task can be 
@@ -119,10 +84,6 @@ namespace Formix.Semaphore
         /// </summary>
         /// <param name="semtask">The semaphore task that will be started if 
         /// true is returned.</param>
-        /// <returns>An awaitable task that results in tru if the given 
-        /// SemaphoreTask is to be executed or false if the Wait method 
-        /// shall wait for another Delai time (in ms) before asking 
-        /// again.</returns>
-        protected abstract Task<bool> CanExecute(SemaphoreTask semtask);
+        protected abstract bool CanExecute(Token semtask);
     }
 }

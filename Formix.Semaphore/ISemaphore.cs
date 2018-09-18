@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Formix.Semaphore
 {
@@ -33,16 +31,19 @@ namespace Formix.Semaphore
         /// Gets an enumerator of all SemaphoreTasks that are currently 
         /// executing and queued in this semaphore.
         /// </summary>
-        IEnumerable<SemaphoreTask> Tasks { get; }
+        IEnumerable<Token> Tokens { get; }
 
         /// <summary>
-        /// Executes the given action with an optional usage value.
+        /// Wait for resources. Blocks until the semaphore have enough 
+        /// resource to execute the task.
         /// </summary>
-        /// <param name="action">The action to execute.</param>
-        /// <param name="usage">How much of the Semaphore.Value does that 
-        /// action consumes while executing. Must be grater than zero and 
-        /// lower or equal to the Semaphore.Value value. Defaults to 1.</param>
-        /// <returns>An awaitable task</returns>
-        Task Execute(Action action, int usage = 1);
+        /// <param name="token">The token to wait for.</param>
+        void Wait(Token token);
+
+        /// <summary>
+        /// Releases the resources used by the token.
+        /// </summary>
+        /// <param name="token">The token used to reserve resources.</param>
+        void Signal(Token token);
     }
 }

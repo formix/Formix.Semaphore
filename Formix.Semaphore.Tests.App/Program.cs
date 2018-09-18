@@ -9,7 +9,7 @@ namespace Formix.Semaphore.Tests.App
         static void Main(string[] args)
         {
             var semaphore = ExecuteThreeTasks();
-            Task.WaitAll(semaphore.Tasks.ToArray());
+            Task.WaitAll(semaphore.Tokens.ToArray());
             Console.WriteLine("Waiting!!!");
             Task.Delay(2500).Wait();
         }
