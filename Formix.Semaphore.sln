@@ -12,7 +12,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formix.Semaphore", "Formix.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formix.Semaphore.Tests", "Formix.Semaphore.Tests\Formix.Semaphore.Tests.csproj", "{4575577E-5CD0-4FBA-828D-A544E1A0A0DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formix.Semaphore.Sql", "Formix.Semaphore.Sql\Formix.Semaphore.Sql.csproj", "{906498F0-2D7A-498C-B86D-3670FDB861BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formix.Semaphore.Sql", "Formix.Semaphore.Sql\Formix.Semaphore.Sql.csproj", "{906498F0-2D7A-498C-B86D-3670FDB861BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{2AAF9A66-8202-40CF-AE81-A8F7343D5094}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +34,10 @@ Global
 		{906498F0-2D7A-498C-B86D-3670FDB861BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{906498F0-2D7A-498C-B86D-3670FDB861BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{906498F0-2D7A-498C-B86D-3670FDB861BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AAF9A66-8202-40CF-AE81-A8F7343D5094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AAF9A66-8202-40CF-AE81-A8F7343D5094}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AAF9A66-8202-40CF-AE81-A8F7343D5094}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AAF9A66-8202-40CF-AE81-A8F7343D5094}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
