@@ -116,7 +116,10 @@ namespace Formix.Semaphore.Tests
                 semaphore.Signal(token3);
             });
 
-            Task.WaitAll(task1, task2, task3);
+            Task.WaitAll(new[] { task1, task2, task3 }, 2000);
+            Assert.IsTrue(task1.IsCompleted, "Task1 did not complete.");
+            Assert.IsTrue(task2.IsCompleted, "Task2 did not complete.");
+            Assert.IsTrue(task3.IsCompleted, "Task3 did not complete.");
 
             await Task.CompletedTask;
         }
@@ -130,7 +133,7 @@ namespace Formix.Semaphore.Tests
             var taskFinished = new bool[taskCount];
             
             // Seeding random to something that looks like a good set of values to me
-            var rnd = new Random(2); 
+            var rnd = new Random(2);
 
             // Initialize the semaphore with a random value.
             var value = rnd.Next(10) + 3;
@@ -140,29 +143,29 @@ namespace Formix.Semaphore.Tests
             var start = DateTime.Now.Ticks / 10000;
 
             // Create dummy tasks and starts them
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < taskCount; i++)
             {
-                // Randomize the semaphore usage for the task that will be started.
-                var usage = rnd.Next(value) + 1;
-
                 var index = i; // Store 'i' value in a local variable for later use in  lambda expression
+                
+                // Randomize the semaphore usage for the task that will be started.
+                var token = new Token(rnd.Next(value) + 1);
+
                 tasks.Add(Task.Run(() =>
                 {
                     // This is the fake task code...
-                    var token = new Token(usage);
                     semaphore.Wait(token);
                     var elapsed = DateTime.Now.Ticks / 10000 - start;
-                    Console.WriteLine($"[{elapsed}] Task {index}, usage {usage}, Started");
+                    Console.WriteLine($"[{elapsed}] Task {index}, usage {token.Usage}, Started");
                     Task.Delay(rnd.Next(40) + 10).Wait();
-                    Console.WriteLine($"[{elapsed}] Task {index}, usage {usage}, Running");
+                    Console.WriteLine($"[{elapsed}] Task {index}, usage {token.Usage}, Running");
                     Task.Delay(rnd.Next(40) + 10).Wait();
-                    Console.WriteLine($"[{elapsed}] Task {index}, usage {usage}, Done");
+                    Console.WriteLine($"[{elapsed}] Task {index}, usage {token.Usage}, Done");
                     taskFinished[index] = true;
                     Task.Delay(rnd.Next(40) + 10).Wait();
                     semaphore.Signal(token);
                 }));
 
-                Console.WriteLine($"- Task {index} created, Usage = {usage}");
+                Console.WriteLine($"- Task {index} created, Usage = {token.Usage}");
             }
 
             // Creates a task to monitor all the other tasks
@@ -210,8 +213,7 @@ namespace Formix.Semaphore.Tests
             Task.WaitAll(tasks.ToArray());
 
             foreach (var taskDone in taskFinished)
-            {
-
+            {       
                 Assert.IsTrue(taskDone);
             }
         }

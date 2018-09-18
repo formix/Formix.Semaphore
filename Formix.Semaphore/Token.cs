@@ -63,12 +63,13 @@ namespace Formix.Semaphore
 
         public int CompareTo(Token other)
         {
-            if (TimeStamp < other.TimeStamp)
+            var diff = TimeStamp - other.TimeStamp;
+            if (diff < 0)
             {
                 return -1;
             }
 
-            if (TimeStamp > other.TimeStamp)
+            if (diff > 0)
             {
                 return 1;
             }
