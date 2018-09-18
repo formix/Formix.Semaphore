@@ -10,10 +10,12 @@ namespace Formix.Semaphore.Sql
 
         public override IEnumerable<Token> Tokens { get { return GetTokens(); } }
 
-        public SqlSemaphore(string connectionString)
+        public SqlSemaphore(string connectionString, string name, int value)
         {
             ConnectionString = connectionString;
             Delay = 1000;
+            Name = name;
+            Value = value;
         }
 
         protected override void Enqueue(Token token)
